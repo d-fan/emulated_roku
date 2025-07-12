@@ -1,0 +1,22 @@
+{
+  "name": "emulated_roku",
+  "version": "1.0.0",
+  "description": "This library is for emulating the Roku API. Discovery is tested with Logitech Harmony and Android remotes. Only key press / down / up events and app launches (10 dummy apps) are implemented in the RokuCommandHandler callback.   Other functionality such as input, search will not work. See the [example](example.py) on how to use.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.6",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
+  }
+}
