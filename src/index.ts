@@ -250,13 +250,17 @@ export class EmulatedRoku {
     this.app.use(express.text({ type: '*/*' })); // Roku sends plain text bodies
 
     // Host & remote‑IP security (equiv. to Python version)
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
-      if (!this.allowedHosts.has(req.headers.host ?? '')) {
-        return res.status(403).send('Forbidden – Host not allowed');
+    this.app.use((req, res, next) => {
+      if (req.headers.host == null || !this.allowedHosts.has(req.headers.host)) {
+        res.status(403).send('Forbidden - Host not allowed');
+      }
+      if (req.ip == null) {
+        res.status(403).send('Forbidden - No remote IP');
+        return;
       }
       const remote = req.ip.replace('::ffff:', '');
-      if (!ipaddr.isValid(remote) || !ipaddr.parse(remote).range()!.startsWith('private')) {
-        return res.status(403).send('Forbidden – Non‑local network');
+      if (!ipaddr.isValid(remote) || ipaddr.parse(remote).range()?.startsWith('private') !== true) {
+        res.status(403).send('Forbidden - Non-local network');
       }
       next();
     });
@@ -264,17 +268,17 @@ export class EmulatedRoku {
 
   private configureRoutes(): void {
     /* Root & device‑info */
-    this.app.get('/', (_req, res) => res.type('text/xml').send(INFO_TEMPLATE(this.uuid, this.usn)));
-    this.app.get('/query/device-info', (_req, res) => res.type('text/xml').send(DEVICE_INFO_TEMPLATE(this.uuid, this.usn)));
+    this.app.get('/', (_req, res) => {res.type('text/xml').send(INFO_TEMPLATE(this.uuid, this.usn))});
+    this.app.get('/query/device-info', (_req, res) => {res.type('text/xml').send(DEVICE_INFO_TEMPLATE(this.uuid, this.usn))});
 
     /* Apps & icons */
-    this.app.get('/query/apps', (_req, res) => res.type('text/xml').send(APPS_TEMPLATE));
-    this.app.get('/query/icon/:id', (_req, res) => res.type('image/png').send(APP_PLACEHOLDER_ICON));
-    this.app.get('/query/active-app', (_req, res) => res.type('text/xml').send(ACTIVE_APP_TEMPLATE));
+    this.app.get('/query/apps', (_req, res) => {res.type('text/xml').send(APPS_TEMPLATE)});
+    this.app.get('/query/icon/:id', (_req, res) => {res.type('image/png').send(APP_PLACEHOLDER_ICON)});
+    this.app.get('/query/active-app', (_req, res) => {res.type('text/xml').send(ACTIVE_APP_TEMPLATE)});
 
     /* Search & input (no‑op) */
-    this.app.post('/input', (_req, res) => res.sendStatus(200));
-    this.app.post('/search', (_req, res) => res.sendStatus(200));
+    this.app.post('/input', (_req, res) => {res.sendStatus(200)});
+    this.app.post('/search', (_req, res) => {res.sendStatus(200)});
 
     /* Key events */
     this.app.post('/keydown/:key', (req, res) => {
