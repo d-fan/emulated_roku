@@ -4,7 +4,9 @@
   "description": "This library is for emulating the Roku API. Discovery is tested with Logitech Harmony and Android remotes. Only key press / down / up events and app launches (10 dummy apps) are implemented in the RokuCommandHandler callback.   Other functionality such as input, search will not work. See the [example](example.py) on how to use.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
@@ -12,6 +14,13 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.6",
+    "@types/node-ssdp": "^4.0.4",
+    "@typescript-eslint/eslint-plugin": "^8.36.0",
+    "@typescript-eslint/parser": "^8.36.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "prettier": "^3.6.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {

@@ -15,27 +15,28 @@
 //   @types/express, @types/node-ssdp, @types/ipaddr.js (if using npm < v20)
 // ----------------------------------------------------
 
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import { Server as HttpServer } from 'http';
 import { networkInterfaces } from 'os';
 import crypto from 'crypto';
-import { Server as SsdpServer, SsdpHeaders } from 'node-ssdp';
+import { Server as SsdpServer } from 'node-ssdp';
 import ipaddr from 'ipaddr.js';
 
 /* -------------------------------------------------------------------------
  * Constants & XML templates – kept close to the originals for parity.
  * -------------------------------------------------------------------------*/
 const MULTICAST_TTL = 300;
-const MULTICAST_GROUP = '239.255.255.250';
-const MULTICAST_PORT = 1900;
 
 // Base64‑1 × 1 placeholder PNG (identical to Python version)
 const APP_PLACEHOLDER_ICON = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=',
-  'base64'
+  'base64',
 );
 
-const INFO_TEMPLATE = (uuid: string, usn: string) => `<?xml version="1.0" encoding="UTF-8" ?>
+const INFO_TEMPLATE = (
+  uuid: string,
+  usn: string,
+) => `<?xml version="1.0" encoding="UTF-8" ?>
 <root xmlns="urn:schemas-upnp-org:device-1-0">
   <specVersion>
     <major>1</major>
@@ -217,7 +218,9 @@ export class EmulatedRoku {
   async start(): Promise<void> {
     // 1) Start HTTP server
     await new Promise<void>((resolve) => {
-      this.http = this.app.listen(this.listenPort, this.hostIp, () => resolve());
+      this.http = this.app.listen(this.listenPort, this.hostIp, () =>
+        resolve(),
+      );
     });
 
     // 2) Start SSDP advertising
@@ -234,7 +237,9 @@ export class EmulatedRoku {
     // node-ssdp exposes a .start() returning void but we wrap in promise for order
     await new Promise<void>((resolve) => this.ssdp!.start(() => resolve()));
 
-    console.info(`Emulated Roku started at http://${this.hostIp}:${this.listenPort} (USN: ${this.usn})`);
+    console.info(
+      `Emulated Roku started at http://${this.hostIp}:${this.listenPort} (USN: ${this.usn})`,
+    );
   }
 
   async stop(): Promise<void> {
@@ -251,7 +256,10 @@ export class EmulatedRoku {
 
     // Host & remote‑IP security (equiv. to Python version)
     this.app.use((req, res, next) => {
-      if (req.headers.host == null || !this.allowedHosts.has(req.headers.host)) {
+      if (
+        req.headers.host == null ||
+        !this.allowedHosts.has(req.headers.host)
+      ) {
         res.status(403).send('Forbidden - Host not allowed');
       }
       if (req.ip == null) {
@@ -259,7 +267,10 @@ export class EmulatedRoku {
         return;
       }
       const remote = req.ip.replace('::ffff:', '');
-      if (!ipaddr.isValid(remote) || ipaddr.parse(remote).range()?.startsWith('private') !== true) {
+      if (
+        !ipaddr.isValid(remote) ||
+        ipaddr.parse(remote).range()?.startsWith('private') !== true
+      ) {
         res.status(403).send('Forbidden - Non-local network');
       }
       next();
@@ -268,17 +279,31 @@ export class EmulatedRoku {
 
   private configureRoutes(): void {
     /* Root & device‑info */
-    this.app.get('/', (_req, res) => {res.type('text/xml').send(INFO_TEMPLATE(this.uuid, this.usn))});
-    this.app.get('/query/device-info', (_req, res) => {res.type('text/xml').send(DEVICE_INFO_TEMPLATE(this.uuid, this.usn))});
+    this.app.get('/', (_req, res) => {
+      res.type('text/xml').send(INFO_TEMPLATE(this.uuid, this.usn));
+    });
+    this.app.get('/query/device-info', (_req, res) => {
+      res.type('text/xml').send(DEVICE_INFO_TEMPLATE(this.uuid, this.usn));
+    });
 
     /* Apps & icons */
-    this.app.get('/query/apps', (_req, res) => {res.type('text/xml').send(APPS_TEMPLATE)});
-    this.app.get('/query/icon/:id', (_req, res) => {res.type('image/png').send(APP_PLACEHOLDER_ICON)});
-    this.app.get('/query/active-app', (_req, res) => {res.type('text/xml').send(ACTIVE_APP_TEMPLATE)});
+    this.app.get('/query/apps', (_req, res) => {
+      res.type('text/xml').send(APPS_TEMPLATE);
+    });
+    this.app.get('/query/icon/:id', (_req, res) => {
+      res.type('image/png').send(APP_PLACEHOLDER_ICON);
+    });
+    this.app.get('/query/active-app', (_req, res) => {
+      res.type('text/xml').send(ACTIVE_APP_TEMPLATE);
+    });
 
     /* Search & input (no‑op) */
-    this.app.post('/input', (_req, res) => {res.sendStatus(200)});
-    this.app.post('/search', (_req, res) => {res.sendStatus(200)});
+    this.app.post('/input', (_req, res) => {
+      res.sendStatus(200);
+    });
+    this.app.post('/search', (_req, res) => {
+      res.sendStatus(200);
+    });
 
     /* Key events */
     this.app.post('/keydown/:key', (req, res) => {
